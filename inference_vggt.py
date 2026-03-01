@@ -54,7 +54,7 @@ def save_point_cloud(world_points, confidences, images_rgb, output_dir, confiden
         for point, color in zip(filtered_points_open3d, colors):
             f.write(f"{point[0]:.6f} {point[1]:.6f} {point[2]:.6f} {color[0]} {color[1]} {color[2]}\n")
     
-    print(f"✓ Saved point cloud (manual) with {len(filtered_points_open3d)} points to {output_path_manual}")
+    print(f"[OK] Saved point cloud (manual) with {len(filtered_points_open3d)} points to {output_path_manual}")
     
     # Save using Open3D
     output_path_o3d = output_dir / "point_cloud_o3d.ply"
@@ -63,7 +63,7 @@ def save_point_cloud(world_points, confidences, images_rgb, output_dir, confiden
     pcd.colors = o3d.utility.Vector3dVector(colors / 255.0)
     o3d.io.write_point_cloud(str(output_path_o3d), pcd)
     
-    print(f"✓ Saved point cloud (Open3D) with {len(filtered_points_open3d)} points to {output_path_o3d}")
+    print(f"[OK] Saved point cloud (Open3D) with {len(filtered_points_open3d)} points to {output_path_o3d}")
     
     return filtered_points_open3d, colors
 
@@ -108,8 +108,8 @@ def save_camera_poses(camera_poses, intrinsics, image_files, output_dir):
         image_paths=np.array([str(f) for f in image_files])
     )
     
-    print(f"✓ Camera poses saved to {camera_json_path}")
-    print(f"✓ Camera poses saved to {camera_npz_path}")
+    print(f"[OK] Camera poses saved to {camera_json_path}")
+    print(f"[OK] Camera poses saved to {camera_npz_path}")
 
 def process_clip(model, clip_dir, output_dir, device, dtype):
     """Process a single clip directory"""
@@ -133,7 +133,7 @@ def process_clip(model, clip_dir, output_dir, device, dtype):
             images_batch = images.unsqueeze(0)
             predictions = model(images_batch)
     
-    print("✓ Inference complete!")
+    print("[OK] Inference complete!")
     print(f"GPU memory allocated: {torch.cuda.memory_allocated() / 1024**3:.2f} GB")
     
     # Create output directory
@@ -191,11 +191,11 @@ def process_clip(model, clip_dir, output_dir, device, dtype):
     print(f"\n{'='*50}")
     print("SUMMARY")
     print(f"{'='*50}")
-    print(f"✓ Point cloud: {output_dir / 'point_cloud_o3d.ply'}")
-    print(f"✓ Camera poses (JSON): {output_dir / 'camera_poses.json'}")
-    print(f"✓ Camera poses (NPZ): {output_dir / 'camera_poses.npz'}")
-    print(f"✓ Number of cameras: {len(image_files)}")
-    print(f"✓ Number of 3D points: {len(filtered_points)}")
+    print(f"[OK] Point cloud: {output_dir / 'point_cloud_o3d.ply'}")
+    print(f"[OK] Camera poses (JSON): {output_dir / 'camera_poses.json'}")
+    print(f"[OK] Camera poses (NPZ): {output_dir / 'camera_poses.npz'}")
+    print(f"[OK] Number of cameras: {len(image_files)}")
+    print(f"[OK] Number of 3D points: {len(filtered_points)}")
     print(f"{'='*50}")
 
 def main():
@@ -224,7 +224,7 @@ def main():
     print("Loading VGGT model...")
     model = VGGT.from_pretrained("facebook/VGGT-1B").to(device)
     model.eval()
-    print("✓ Model loaded successfully!")
+    print("[OK] Model loaded successfully!")
     
     if not input_dir.exists():
         print(f"Error: Input directory {input_dir} does not exist!")
@@ -284,11 +284,11 @@ def main():
         
         if video_success:
             success_count += 1
-            print(f"✓ Successfully processed all clips in {video_id}")
+            print(f"[OK] Successfully processed all clips in {video_id}")
         else:
             fail_count += 1
             failed_videos.append(video_id)
-            print(f"✗ Some clips failed in {video_id}")
+            print(f"[FAIL] Some clips failed in {video_id}")
     
     # Final summary
     print(f"\n{'='*60}")
