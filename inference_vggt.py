@@ -199,13 +199,16 @@ def process_clip(model, clip_dir, output_dir, device, dtype):
     print(f"{'='*50}")
 
 def main():
-    if len(sys.argv) != 4:
-        print("Usage: python inference_vggt.py <input_dir> <output_dir> <video_id>")
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        print("Usage: python inference_vggt.py <input_dir> <output_dir> [max_videos]")
+        print("  <input_dir>   : Directory containing video folders")
+        print("  <output_dir>  : Directory to save outputs")
+        print("  [max_videos]  : Optional - Maximum number of videos to process (default: all)")
         sys.exit(1)
     
     input_dir = Path(sys.argv[1])
     output_base = Path(sys.argv[2])
-    video_id = sys.argv[3]
+    max_videos = int(sys.argv[3]) if len(sys.argv) == 4 else None
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.bfloat16 if torch.cuda.get_device_capability()[0] >= 8 else torch.float16
@@ -213,43 +216,94 @@ def main():
     print(f"Using device: {device}, dtype: {dtype}")
     print(f"Input directory: {input_dir}")
     print(f"Output directory: {output_base}")
-    print(f"Video ID: {video_id}")
+    if max_videos:
+        print(f"Max videos to process: {max_videos}")
+    else:
+        print(f"Processing all videos")
     
     print("Loading VGGT model...")
     model = VGGT.from_pretrained("facebook/VGGT-1B").to(device)
     model.eval()
     print("✓ Model loaded successfully!")
     
-    video_dir = input_dir / video_id
-    output_video_dir = output_base / video_id
-    
-    if not video_dir.exists():
-        print(f"Error: Video directory {video_dir} does not exist!")
+    if not input_dir.exists():
+        print(f"Error: Input directory {input_dir} does not exist!")
         sys.exit(1)
     
-    clip_dirs = sorted([d for d in video_dir.iterdir() if d.is_dir() and d.name.startswith("clip_")])
+    # Get all video directories
+    all_video_dirs = sorted([d for d in input_dir.iterdir() if d.is_dir()])
     
-    print(f"Found {len(clip_dirs)} clips in {video_id}")
+    # Limit to max_videos if specified
+    if max_videos:
+        video_dirs = all_video_dirs[:max_videos]
+        print(f"\nFound {len(all_video_dirs)} total videos, processing first {len(video_dirs)}")
+    else:
+        video_dirs = all_video_dirs
+        print(f"\nFound {len(video_dirs)} videos to process")
     
-    for clip_dir in clip_dirs:
-        clip_name = clip_dir.name
-        output_clip_dir = output_video_dir / clip_name
+    # Track statistics
+    success_count = 0
+    fail_count = 0
+    failed_videos = []
+    
+    # Process each video
+    for video_idx, video_dir in enumerate(video_dirs, 1):
+        video_id = video_dir.name
+        output_video_dir = output_base / video_id
         
         print(f"\n{'='*60}")
-        print(f"Processing {video_id}/{clip_name}")
+        print(f"[{video_idx}/{len(video_dirs)}] Processing video: {video_id}")
         print(f"{'='*60}")
         
-        try:
-            process_clip(model, clip_dir, output_clip_dir, device, dtype)
-        except Exception as e:
-            print(f"Error processing {clip_name}: {e}")
-            import traceback
-            traceback.print_exc()
+        # Get all clips in this video
+        clip_dirs = sorted([d for d in video_dir.iterdir() if d.is_dir() and d.name.startswith("clip_")])
+        
+        if len(clip_dirs) == 0:
+            print(f"Warning: No clips found in {video_id}")
+            fail_count += 1
+            failed_videos.append(video_id)
             continue
+        
+        print(f"Found {len(clip_dirs)} clips in {video_id}")
+        
+        video_success = True
+        for clip_dir in clip_dirs:
+            clip_name = clip_dir.name
+            output_clip_dir = output_video_dir / clip_name
+            
+            print(f"\nProcessing {video_id}/{clip_name}")
+            
+            try:
+                process_clip(model, clip_dir, output_clip_dir, device, dtype)
+            except Exception as e:
+                print(f"Error processing {clip_name}: {e}")
+                import traceback
+                traceback.print_exc()
+                video_success = False
+                continue
+        
+        if video_success:
+            success_count += 1
+            print(f"✓ Successfully processed all clips in {video_id}")
+        else:
+            fail_count += 1
+            failed_videos.append(video_id)
+            print(f"✗ Some clips failed in {video_id}")
     
+    # Final summary
     print(f"\n{'='*60}")
-    print("Processing complete!")
-    print(f"Results saved to: {output_video_dir}")
+    print("FINAL SUMMARY")
+    print(f"{'='*60}")
+    print(f"Total videos processed: {len(video_dirs)}")
+    print(f"Successful: {success_count}")
+    print(f"Failed: {fail_count}")
+    
+    if failed_videos:
+        print(f"\nFailed videos:")
+        for vid in failed_videos:
+            print(f"  - {vid}")
+    
+    print(f"\nResults saved to: {output_base}")
     print(f"{'='*60}")
 
 if __name__ == "__main__":
