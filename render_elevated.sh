@@ -6,7 +6,7 @@
 #SBATCH --output=runs/render_elevated_%j.out
 
 # ==== CONFIGURATION ====
-OUTPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/vggt-output"
+OUTPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/vggt-output-train"
 # =======================
 
 module load anaconda3
