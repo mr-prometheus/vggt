@@ -113,7 +113,8 @@ def save_camera_poses(camera_poses, intrinsics, image_files, output_dir):
 
 def process_clip(model, clip_dir, output_dir, device, dtype):
     """Process a single clip directory"""
-    original_dir = clip_dir / "original"
+    # original_dir = clip_dir / "original"
+    original_dir = clip_dir 
     
     image_files = sorted(original_dir.glob("*.jpg"))
     
