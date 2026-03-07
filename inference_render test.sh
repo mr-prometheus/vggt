@@ -6,8 +6,8 @@
 #SBATCH --output=runs/inference_render_%j.out
 
 # ==== CONFIGURATION ====
-INPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/val/extracted_clips_train"
-OUTPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/vggt-output-train-rendered"
+INPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/val/extracted_clips_test"
+OUTPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/vggt-output-test-rendered"
 MAX_VIDEOS=10000
 # =======================
 
