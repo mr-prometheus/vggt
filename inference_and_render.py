@@ -435,7 +435,7 @@ def main():
             output_clip_dir = output_video_dir / clip_name
 
             if not force and is_clip_done(output_clip_dir):
-                print(f"\n[SKIP] {video_id}/{clip_name} — renders already exist")
+                print(f"\n[SKIP] {video_id}/{clip_name} -- renders already exist")
                 continue
 
             print(f"\nProcessing {video_id}/{clip_name}")
