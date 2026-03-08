@@ -349,17 +349,29 @@ def process_clip(model, clip_dir, output_dir, device, dtype):
     print(f"{'='*50}")
 
 
+EXPECTED_RENDER_FILES = ["ground_0deg.png", "elevated_45deg.png", "elevated_110deg.png"]
+
+
+def is_clip_done(output_clip_dir: Path) -> bool:
+    """Return True if all expected rendered images already exist for this clip."""
+    return all((output_clip_dir / f).exists() for f in EXPECTED_RENDER_FILES)
+
+
 def main():
-    if len(sys.argv) < 3 or len(sys.argv) > 4:
-        print("Usage: python inference_and_render.py <input_dir> <output_dir> [max_videos]")
-        print("  <input_dir>   : Directory containing video folders")
-        print("  <output_dir>  : Directory to save outputs")
-        print("  [max_videos]  : Optional - Maximum number of videos to process (default: all)")
-        sys.exit(1)
-    
-    input_dir = Path(sys.argv[1])
-    output_base = Path(sys.argv[2])
-    max_videos = int(sys.argv[3]) if len(sys.argv) == 4 else None
+    import argparse
+    parser = argparse.ArgumentParser(description="VGGT inference and rendering")
+    parser.add_argument("input_dir", type=Path, help="Directory containing video folders")
+    parser.add_argument("output_dir", type=Path, help="Directory to save outputs")
+    parser.add_argument("max_videos", type=int, nargs="?", default=None,
+                        help="Maximum number of videos to process (default: all)")
+    parser.add_argument("--force", action="store_true",
+                        help="Force recompute even if outputs already exist")
+    args = parser.parse_args()
+
+    input_dir = args.input_dir
+    output_base = args.output_dir
+    max_videos = args.max_videos
+    force = args.force
     
     device = "cuda" if torch.cuda.is_available() else "cpu"
     dtype = torch.bfloat16 if torch.cuda.get_device_capability()[0] >= 8 else torch.float16
@@ -421,9 +433,13 @@ def main():
         for clip_dir in clip_dirs:
             clip_name = clip_dir.name
             output_clip_dir = output_video_dir / clip_name
-            
+
+            if not force and is_clip_done(output_clip_dir):
+                print(f"\n[SKIP] {video_id}/{clip_name} — renders already exist")
+                continue
+
             print(f"\nProcessing {video_id}/{clip_name}")
-            
+
             try:
                 process_clip(model, clip_dir, output_clip_dir, device, dtype)
             except Exception as e:

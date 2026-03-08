@@ -2,13 +2,13 @@
 #SBATCH -J vggt_inference_render
 #SBATCH --mem=40GB
 #SBATCH --gres=gpu:1 -C gmem24
-#SBATCH --time=04:00:00
 #SBATCH --output=runs/inference_render_%j.out
 
 # ==== CONFIGURATION ====
 INPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/val/extracted_clips_train"
 OUTPUT_DIR="/home/de575594/Deepan/CV/geolocalization/vggt-long/datasets/bdd_dataset_day/vggt-output-train-rendered"
 MAX_VIDEOS=10000
+FORCE_RECOMPUTE=false   # set to true to recompute clips that already have rendered outputs
 # =======================
 
 module load anaconda3
@@ -22,11 +22,18 @@ echo "Starting VGGT inference and rendering"
 echo "Input: $INPUT_DIR"
 echo "Output: $OUTPUT_DIR"
 echo "Max videos: $MAX_VIDEOS"
+echo "Force recompute: $FORCE_RECOMPUTE"
 echo "Start time: $(date)"
 echo "================================================"
 
+# Build force flag
+FORCE_FLAG=""
+if [ "$FORCE_RECOMPUTE" = true ]; then
+    FORCE_FLAG="--force"
+fi
+
 # Run combined inference and rendering
-python inference_and_render.py "$INPUT_DIR" "$OUTPUT_DIR" "$MAX_VIDEOS"
+python inference_and_render.py "$INPUT_DIR" "$OUTPUT_DIR" "$MAX_VIDEOS" $FORCE_FLAG
 
 echo ""
 echo "================================================"
