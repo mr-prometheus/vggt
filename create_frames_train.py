@@ -438,15 +438,6 @@ def process_videos(
     print(f"Clips saved to: {output_frames_dir}/")
     print("\nOutput structure:")
     print(f"  {output_frames_dir}/")
-    print(f"    └── <video_name>/")
-    print(f"        ├── clip_metadata.csv")
-    print(f"        ├── clip_0000/")
-    print(f"        │   ├── frame_00_idx000000_t0.000s.jpg")
-    print(f"        │   ├── frame_01_idx000002_t0.067s.jpg")
-    print(f"        │   └── ... ({frames_per_clip} frames)")
-    print(f"        ├── clip_0001/")
-    print(f"        │   └── ...")
-    print(f"        └── ...")
 
 
 if __name__ == "__main__":
